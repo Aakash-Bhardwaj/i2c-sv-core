@@ -141,8 +141,9 @@ Final Documentation Review
 # Project Status
 
 - [x] Repository initialized
-- [ ] Project specification
-- [ ] Architecture
+- [x] Project specification
+- [x] Architecture
+- [x] Initial Documentation
 - [ ] I²C Master RTL
 - [ ] I²C Master Verification
 - [ ] I²C Master Synthesis
@@ -154,6 +155,7 @@ Final Documentation Review
 - [ ] Generic synthesis
 - [ ] Technology-mapped synthesis
 - [ ] Static timing analysis
+- [ ] Finalize Documentation
 
 ---
 
