@@ -1,0 +1,23 @@
+# Yosys synthesis script for I2C Master
+
+# Read RTL
+read_verilog -sv rtl/i2c_master.sv
+
+# Set top module
+hierarchy -top i2c_master
+
+# Generic synthesis
+proc
+opt
+fsm
+opt
+memory
+opt
+techmap
+opt
+
+# Statistics
+stat
+
+# Write synthesized netlist
+write_verilog reports/i2c_master_synth.v
