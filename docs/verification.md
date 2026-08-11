@@ -38,11 +38,37 @@ Verification follows a layered approach consisting of:
 
 ### 4.1 I²C Master
 
-*To be completed after implementation.*
+Verified using a self-checking SystemVerilog testbench with a behavioural I²C slave model.
+
+Verified properties:
+
+- Reset behaviour
+- START condition generation
+- STOP condition generation
+- Single-byte write transaction
+- Single-byte read transaction
+- 7-bit slave addressing
+- ACK/NACK handling
+- Repeated START operation
+- Clock stretching support
+- Busy signal behaviour
+- Done signal behaviour
+- Error signalling
+- Randomized stress testing
+- Parameterized data width
 
 #### Test Summary
 
-*To be completed after implementation.*
+| Test Case | Status |
+|-----------|:------:|
+| Reset | ✓ |
+| Single-Byte Write | ✓ |
+| Single-Byte Read | ✓ |
+| Address NACK | ✓ |
+| Data NACK | ✓ |
+| Clock Stretching | ✓ |
+| Repeated START | ✓ |
+| Random Stress Testing | ✓ |
 
 ---
 
@@ -70,11 +96,37 @@ Verification follows a layered approach consisting of:
 
 ### 5.1 I²C Master
 
-*To be completed after implementation.*
+Verified using a self-checking SystemVerilog testbench with a behavioural I²C slave model.
+
+Verified properties:
+
+- Reset behaviour
+- START condition generation
+- STOP condition generation
+- Single-byte write transaction
+- Single-byte read transaction
+- 7-bit slave addressing
+- ACK/NACK handling
+- Repeated START operation
+- Clock stretching support
+- Busy signal behaviour
+- Done signal behaviour
+- Error signalling
+- Randomized stress testing
+- Parameterized data width
 
 #### Test Summary
 
-*To be completed after implementation.*
+| Test Case | Status |
+|-----------|:------:|
+| Reset | ✓ |
+| Single-Byte Write | ✓ |
+| Single-Byte Read | ✓ |
+| Address NACK | ✓ |
+| Data NACK | ✓ |
+| Clock Stretching | ✓ |
+| Repeated START | ✓ |
+| Random Stress Testing | ✓ |
 
 ---
 
@@ -102,7 +154,15 @@ Verification follows a layered approach consisting of:
 
 ### 6.1 I²C Master
 
-*To be completed after implementation.*
+Immediate SystemVerilog assertions were implemented to verify key I²C Master design invariants during simulation.
+
+Verified properties:
+
+- `busy` and `done` are never asserted simultaneously.
+- Output signals (`rx_data`, `busy`, `done`, and `error`) never contain unknown (`X`) values after reset.
+- `done` is asserted for exactly one clock cycle.
+
+All assertions passed during simulation.
 
 ---
 
@@ -130,6 +190,8 @@ The verification process aims to:
 - Verify parameter configurations
 - Verify reset behaviour
 - Verify boundary conditions
+- Verify end-to-end master transactions using a behavioural slave model.
+- Verify end-to-end slave transactions using a behavioural master model.
 - Verify end-to-end master-slave integration
 
 ---
@@ -149,7 +211,7 @@ Verification is considered complete when:
 
 ## 9. Static Timing Analysis Results
 
-*To be completed after synthesis and timing analysis.*
+*To be completed after OpenSTA timing analysis.*
 
 ---
 

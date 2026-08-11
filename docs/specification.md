@@ -35,6 +35,7 @@ Version 1.0 implements:
 * Repeated START generation and detection
 * START condition generation and detection
 * STOP condition generation and detection
+* Clock stretching
 * ACK/NACK generation and detection
 * Parameterized transfer width
 * Parameterized system clock frequency
@@ -46,7 +47,6 @@ The following features are outside the scope of Version 1.0:
 
 * 10-bit addressing
 * Multi-master arbitration
-* Clock stretching
 * Multi-byte transfers
 * General Call addressing
 * SMBus compatibility
@@ -311,13 +311,11 @@ The following assumptions apply to Version 1.0:
 
 Future versions of the I²C SV Core may include:
 
-* Repeated START
 * 10-bit addressing
 * Fast Mode (400 kHz)
 * Fast Mode Plus
 * High-Speed Mode
 * Multi-master arbitration
-* Clock stretching
 * Multi-byte transfers
 * General Call addressing
 * SMBus compatibility

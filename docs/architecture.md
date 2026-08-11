@@ -105,7 +105,58 @@ Incoming serial data is received by the I²C Master and reconstructed into paral
 
 ## 5. I²C Master
 
-*To be completed after implementation.*
+The I²C Master follows a synchronous single-clock architecture.
+
+Key design decisions:
+
+- Single clock domain
+- Parameterized clock divider
+- Four-phase SCL generation
+- Open-drain SDA/SCL bus interface
+- Separate control and datapath
+- Independent transmit and receive shift registers
+- Registered outputs
+- Parameterized transfer width
+- Seven-state transaction FSM
+- Repeated START support
+- Clock stretching support
+
+### Datapath Overview
+
+The I²C Master datapath consists of:
+
+- Clock divider
+- Four-phase timing generator
+- Transaction FSM
+- Transmit shift register
+- Receive shift register
+- Bit counter
+- Open-drain SDA/SCL bus interface
+- Registered outputs
+
+![DATAPATH](./images/I2C_MASTER_DATAPATH.png)
+
+### Internal Registers
+
+| Register | Purpose |
+|----------|---------|
+| `slave_addr_reg` | Latched slave address |
+| `rw_reg` | Latched read/write control |
+| `tx_data_reg` | Latched transmit data |
+| `tx_shift_reg` | Transmit shift register |
+| `rx_shift_reg` | Receive shift register |
+| `rx_data_reg` | Received data register |
+| `divider_reg` | Clock divider counter |
+| `phase` | Quarter-cycle timing phase |
+| `bit_count` | Bit counter |
+| `state` | Transaction FSM state |
+| `sda_drive_low` | Open-drain SDA control |
+| `scl_drive_low` | Open-drain SCL control |
+| `clock_enable` | Enables SCL generation |
+| `repeated_start_reg` | Queued repeated START request |
+| `busy_reg` | Busy status |
+| `done_reg` | Transaction complete pulse |
+| `error_reg` | Transaction error status |
 
 ---
 
@@ -130,7 +181,6 @@ Future versions of the I²C SV Core may include:
 - Fast Mode Plus
 - High-Speed Mode
 - Multi-master arbitration
-- Clock stretching
 - Multi-byte transfers
 - General Call addressing
 - SMBus compatibility

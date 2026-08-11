@@ -26,145 +26,333 @@ The I²C SV Core follows the implementation guidelines below:
 
 ---
 
-# 3. I²C Master
+## 3. I²C Master
 
-## 3.1 Module Overview
+### 3.1 Module Overview
+
+The `i2c_master` module implements a synthesizable, parameterized I²C Master supporting single-byte read and write transactions over a standard two-wire open-drain bus.
+
+The design supports 7-bit slave addressing, START and STOP condition generation, ACK/NACK handling, repeated START transactions, and slave clock stretching. A programmable clock divider generates the I²C serial clock from the system clock using a four-phase timing scheme to coordinate protocol operations.
+
+The implementation follows a synchronous single-clock architecture. All sequential logic operates on the rising edge of the system clock, while protocol timing is controlled through internally generated phase transitions. Transaction parameters are latched at the beginning of each transfer and remain unchanged until the transaction completes.
+
+The module is fully synthesizable and vendor-independent, making it suitable for both FPGA and ASIC implementation flows.
+
+### 3.2 Interface
+
+#### Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `DATA_WIDTH` | Width of each data transfer. |
+| `CLOCK_FREQ_HZ` | System clock frequency. |
+| `SCL_FREQ_HZ` | Desired I²C bus clock frequency. |
+
+#### Inputs
+
+| Signal | Width | Description |
+|--------|------:|-------------|
+| `clk` | 1 | System clock |
+| `rst_n` | 1 | Active-low synchronous reset |
+| `start` | 1 | Initiates a transaction |
+| `slave_addr` | 7 | Target slave address |
+| `rw` | 1 | Read/Write control |
+| `tx_data` | `DATA_WIDTH` | Data transmitted during write operations |
+
+#### Outputs
+
+| Signal | Width | Description |
+|--------|------:|-------------|
+| `rx_data` | `DATA_WIDTH` | Received data |
+| `busy` | 1 | Indicates an active transaction |
+| `done` | 1 | Transaction complete pulse |
+| `error` | 1 | Indicates protocol failure |
+
+#### Bidirectional Signals
+
+| Signal | Description |
+|--------|-------------|
+| `sda` | Open-drain serial data line |
+| `scl` | Open-drain serial clock line |
+
+### 3.3 Derived Parameters
+
+The I²C Master derives internal parameters from the user configuration to simplify counter sizing while maintaining parameterized scalability.
+
+| Parameter | Purpose |
+|-----------|---------|
+| `DIVISOR` | Number of system clock cycles per quarter SCL period |
+| `DIV_WIDTH` | Width of the clock-divider counter |
+| `BIT_CNT_WIDTH` | Width of the transfer bit counter |
+
+The implementation validates the following parameter constraints during simulation:
+
+- `DATA_WIDTH > 0`
+- `CLOCK_FREQ_HZ > 0`
+- `SCL_FREQ_HZ > 0`
+- `DIVISOR > 1`
+
+Parameter validation is excluded from synthesis using `translate_off` directives while remaining active during simulation.
+
+### 3.4 Internal Registers
+
+The I²C Master maintains internal registers for transaction configuration, protocol timing, datapath operation, control, and registered outputs.
+
+| Register | Purpose |
+|----------|---------|
+| `state` | Current transaction state |
+| `phase` | Current SCL timing phase |
+| `divider_reg` | Clock-divider counter |
+| `clock_enable` | Enables SCL generation |
+| `slave_addr_reg` | Latched slave address |
+| `rw_reg` | Latched read/write control |
+| `tx_data_reg` | Latched transmit data |
+| `tx_shift_reg` | Serial transmit shift register |
+| `rx_shift_reg` | Serial receive shift register |
+| `rx_data_reg` | Registered received data |
+| `bit_count` | Tracks transferred bits |
+| `repeated_start_reg` | Stores repeated START request |
+| `sda_drive_low` | Open-drain SDA control |
+| `scl_drive_low` | Open-drain SCL control |
+| `busy_reg` | Registered busy status |
+| `done_reg` | Registered transaction complete indication |
+| `error_reg` | Registered protocol error indication |
+
+### 3.5 Combinational Signals
+
+The I²C Master derives several combinational signals to simplify protocol implementation and reduce duplicated logic.
+
+| Signal | Purpose |
+|---------|---------|
+| `quarter_tick` | Indicates completion of one quarter SCL period |
+| `transfer_finish` | Indicates the final data bit of the current transfer |
+| `last_bit` | Indicates the final bit before ACK/NACK processing |
+| `sda_in` | Sampled SDA bus input |
+| `scl_in` | Sampled SCL bus input |
+
+These signals simplify transaction sequencing by separating protocol event detection from sequential state updates.
+
+### 3.6 Datapath & State Machine
+
+The I²C Master datapath consists of:
+
+- Clock divider
+- Four-phase clock generator
+- Transaction FSM
+- Transmit shift register
+- Receive shift register
+- Bit counter
+- Open-drain bus interface
+- Registered outputs
+
+The I²C Master uses a seven-state finite-state machine.
+
+| State | Function |
+|--------|----------|
+| `IDLE` | Waits for a transaction request |
+| `START` | Generates the START condition |
+| `ADDRESS` | Transmits the slave address and R/W bit |
+| `ADDRESS_ACK` | Samples the slave acknowledge |
+| `DATA_TRANSFER` | Transfers one data byte |
+| `DATA_TRANSFER_ACK` | Processes the acknowledge phase |
+| `STOP` | Generates the STOP condition and returns to `IDLE` |
+
+![FSM](./images/I2C_MASTER_FSM.png)
+
+### 3.7 Algorithm
+
+1. Validate configuration parameters.
+2. Wait for a valid `start` request.
+3. Latch the transaction parameters.
+4. Generate the START condition.
+5. Transmit the slave address and read/write bit.
+6. Process the address ACK/NACK response.
+7. Perform the data transfer.
+8. Process the data ACK/NACK response.
+9. Generate a repeated START or STOP condition.
+10. Store received data and report transaction status.
+
+### 3.8 Design Decisions
+
+- Single clock domain.
+- Four-phase SCL timing generation.
+- Clock-enable based protocol timing.
+- Separate protocol controller and datapath.
+- Independent transmit and receive shift registers.
+- Dedicated open-drain SDA/SCL bus interface.
+- Registered interface outputs.
+- Repeated START support.
+- Slave clock stretching support.
+- Compile-time parameter validation.
+
+### 3.9 Corner Cases
+
+| Condition | Behaviour |
+|-----------|-----------|
+| Invalid parameters | Simulation-time parameter validation failure |
+| `start` asserted while busy | Request ignored |
+| Address NACK | Transaction terminates with `error` asserted |
+| Data NACK | Transaction terminates with `error` asserted |
+| Clock stretching | Master pauses until SCL is released |
+| Repeated START | New transaction begins without issuing STOP |
+| Reset | Controller returns to `IDLE` and clears internal registers |
+
+### 3.10 Resource Utilization
+
+#### Synthesis Results
+
+- Tool: Yosys
+- Script: `scripts/synth_i2c_master.ys`
+
+#### Generic Synthesis Summary
+
+| Metric | Value |
+|--------|------:|
+| Number of Ports | 12 |
+| Number of Port Bits | 32 |
+| Number of Wires | 296 |
+| Number of Wire Bits | 835 |
+| Public Wires | 42 |
+| Public Wire Bits | 118 |
+| Memory Blocks | 0 |
+| Memory Bits | 0 |
+| Processes | 0 |
+| Total Cells | 642 |
+
+#### Cell Breakdown
+
+| Cell Type | Count |
+|-----------|------:|
+| `$_AND_` | 137 |
+| `$_MUX_` | 220 |
+| `$_NOT_` | 37 |
+| `$_OR_` | 178 |
+| `$_SDFFE_PN0N_` | 3 |
+| `$_SDFFE_PN0P_` | 58 |
+| `$_SDFF_PN0_` | 1 |
+| `$_XOR_` | 8 |
+
+#### Waveform
+
+![Waveform](./images/i2c_master_waveform.png)
+
+#### Verification Status
+
+- [x] RTL Simulation
+- [x] Self-checking Testbench
+- [x] Assertions
+- [x] Generic Synthesis
+- [ ] Static Timing Analysis
+
+---
+
+## 4. I²C Slave
+
+### 4.1 Module Overview
 
 *To be completed after implementation.*
 
-## 3.2 Interface
+### 4.2 Interface
 
 *To be completed after implementation.*
 
-## 3.3 Derived Parameters
+### 4.3 Derived Parameters
 
 *To be completed after implementation.*
 
-## 3.4 Internal Registers
+### 4.4 Internal Registers
 
 *To be completed after implementation.*
 
-## 3.5 Combinational Signals
+### 4.5 Combinational Signals
 
 *To be completed after implementation.*
 
-## 3.6 Datapath & State Machine
+### 4.6 Datapath & State Machine
 
 *To be completed after implementation.*
 
-## 3.7 Algorithm
+### 4.7 Algorithm
 
 *To be completed after implementation.*
 
-## 3.8 Design Decisions
+### 4.8 Design Decisions
 
 *To be completed after implementation.*
 
-## 3.9 Corner Cases
+### 4.9 Corner Cases
 
 *To be completed after implementation.*
 
-## 3.10 Resource Utilization
+### 4.10 Resource Utilization
 
 *To be completed after synthesis and timing analysis.*
 
 ---
 
-# 4. I²C Slave
+## 5. I²C Top-Level
 
-## 4.1 Module Overview
-
-*To be completed after implementation.*
-
-## 4.2 Interface
+### 5.1 Module Overview
 
 *To be completed after implementation.*
 
-## 4.3 Derived Parameters
+### 5.2 Interface
 
 *To be completed after implementation.*
 
-## 4.4 Internal Registers
+### 5.3 Internal Signals
 
 *To be completed after implementation.*
 
-## 4.5 Combinational Signals
+### 5.4 Datapath & Hierarchy
 
 *To be completed after implementation.*
 
-## 4.6 Datapath & State Machine
+### 5.5 Algorithm
 
 *To be completed after implementation.*
 
-## 4.7 Algorithm
+### 5.6 Design Decisions
 
 *To be completed after implementation.*
 
-## 4.8 Design Decisions
+### 5.7 Corner Cases
 
 *To be completed after implementation.*
 
-## 4.9 Corner Cases
-
-*To be completed after implementation.*
-
-## 4.10 Resource Utilization
+### 5.8 Resource Utilization
 
 *To be completed after synthesis and timing analysis.*
 
 ---
 
-# 5. I²C Top-Level
+## 6. Technology Mapped Synthesis
 
-## 5.1 Module Overview
-
-*To be completed after implementation.*
-
-## 5.2 Interface
-
-*To be completed after implementation.*
-
-## 5.3 Internal Signals
-
-*To be completed after implementation.*
-
-## 5.4 Datapath & Hierarchy
-
-*To be completed after implementation.*
-
-## 5.5 Algorithm
-
-*To be completed after implementation.*
-
-## 5.6 Design Decisions
-
-*To be completed after implementation.*
-
-## 5.7 Corner Cases
-
-*To be completed after implementation.*
-
-## 5.8 Resource Utilization
-
-*To be completed after synthesis and timing analysis.*
+*To be completed after Sky130 technology mapping.*
 
 ---
 
-# 6. Technology Mapped Synthesis
+## 7. Static Timing Analysis
 
-*To be completed after synthesis and timing analysis.*
-
----
-
-# 7. Static Timing Analysis
-
-*To be completed after synthesis and timing analysis.*
+*To be completed after OpenSTA timing analysis.*
 
 ---
 
-# 8. Summary
+## 8. Summary
 
-*To be completed after implementation.*
+Version 1.0 of the I²C SV Core currently includes a synthesizable and parameterized I²C Master supporting:
+
+- 7-bit addressing
+- Single-byte read transactions
+- Single-byte write transactions
+- ACK/NACK detection
+- Open-drain SDA/SCL interface
+- Clock stretching support
+- Repeated START support
+- Generic RTL synthesis
+- Self-checking verification environment
+
+*Technology-mapped synthesis, static timing analysis, and additional protocol modules will be incorporated after completion of slave and top modules.*
 
 ---
 
@@ -177,7 +365,7 @@ Future versions of the I²C SV Core may include:
 - Fast Mode Plus
 - High-Speed Mode
 - Multi-master arbitration
-- Clock stretching
+- Multi-byte burst transfers
 - Multi-byte transfers
 - General Call addressing
 - SMBus compatibility

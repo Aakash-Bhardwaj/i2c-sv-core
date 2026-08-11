@@ -146,7 +146,7 @@ Final Documentation Review
 - [x] Initial Documentation
 - [x] I²C Master RTL
 - [x] I²C Master Verification
-- [ ] I²C Master Synthesis
+- [x] I²C Master Synthesis
 - [ ] I²C Slave RTL
 - [ ] I²C Slave Verification
 - [ ] I²C Slave Synthesis
