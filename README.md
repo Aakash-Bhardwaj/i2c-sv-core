@@ -35,10 +35,10 @@ Each design decision is documented, verified, synthesized, and analyzed before i
 ## Version 1.0.0
 
 - [x] Independent I²C Master module
-- [ ] Independent I²C Slave module
+- [x] Independent I²C Slave module
 - [ ] Top-level Master–Slave integration
 - [x] Standard Mode (100 kHz)
-- [ ] 7-bit slave addressing
+- [x] 7-bit slave addressing
 - [ ] Parameterized transfer width
 - [x] Parameterized I²C clock generation
 - [ ] Single-byte write transactions
@@ -147,8 +147,8 @@ Final Documentation Review
 - [x] I²C Master RTL
 - [x] I²C Master Verification
 - [x] I²C Master Synthesis
-- [ ] I²C Slave RTL
-- [ ] I²C Slave Verification
+- [x] I²C Slave RTL
+- [x] I²C Slave Verification
 - [ ] I²C Slave Synthesis
 - [ ] Top-level integration
 - [ ] Verification
