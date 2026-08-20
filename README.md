@@ -149,7 +149,7 @@ Final Documentation Review
 - [x] I²C Master Synthesis
 - [x] I²C Slave RTL
 - [x] I²C Slave Verification
-- [ ] I²C Slave Synthesis
+- [x] I²C Slave Synthesis
 - [ ] Top-level integration
 - [ ] Verification
 - [ ] Generic synthesis

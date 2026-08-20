@@ -1,0 +1,23 @@
+# Yosys synthesis script for I2C Slave
+
+# Read RTL
+read_verilog -sv rtl/i2c_slave.sv
+
+# Set top module
+hierarchy -top i2c_slave
+
+# Generic synthesis
+proc
+opt
+fsm
+opt
+memory
+opt
+techmap
+opt
+
+# Statistics
+stat
+
+# Write synthesized netlist
+write_verilog reports/i2c_slave_synth.v
