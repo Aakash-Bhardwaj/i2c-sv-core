@@ -74,11 +74,36 @@ Verified properties:
 
 ### 4.2 I²C Slave
 
-*To be completed after implementation.*
+Verified using a self-checking SystemVerilog testbench with a behavioural I²C Master model.
+
+Verified properties:
+
+- Reset behaviour
+- START condition detection
+- STOP condition detection
+- 7-bit slave address matching
+- Address ACK/NACK behaviour
+- Single-byte master-write transactions
+- Single-byte master-read transactions
+- Data ACK handling
+- Master NACK handling
+- Repeated START handling
+- Clock stretching support
+- Busy signal behaviour
+- Done signal behaviour
+- Randomized read/write stress testing
 
 #### Test Summary
 
-*To be completed after implementation.*
+| Test Case | Status |
+|-----------|:------:|
+| Reset | Implemented |
+| Master Write | Implemented |
+| Master Read | Implemented |
+| Address Mismatch / NACK | Implemented |
+| Repeated START | Implemented |
+| Random Stress Testing | Implemented |
+
 
 ---
 
@@ -132,11 +157,27 @@ Verified properties:
 
 ### 5.2 I²C Slave
 
-*To be completed after implementation.*
+The functional testbench uses a behavioural Master model to exercise the implemented Slave.
+
+Verified transactions include:
+
+- Master write to the configured Slave address
+- Master read from the configured Slave address
+- Address mismatch
+- Repeated START
+- Randomized read/write transactions
+- Configured clock stretching
 
 #### Test Summary
 
-*To be completed after implementation.*
+| Test Case | Status |
+|-----------|:------:|
+| Master Write | Implemented |
+| Master Read | Implemented |
+| Address Mismatch | Implemented |
+| Repeated START | Implemented |
+| Random Stress Testing | Implemented |
+
 
 ---
 
@@ -168,7 +209,16 @@ All assertions passed during simulation.
 
 ### 6.2 I²C Slave
 
-*To be completed after implementation.*
+Immediate SystemVerilog assertions were implemented to verify key I²C Slave design invariants during simulation.
+
+Verified properties:
+
+- `busy` and `done` are never asserted simultaneously.
+- `rx_data`, `busy`, `done`, and `error` never contain unknown values during active operation.
+- `done` is asserted for exactly one clock cycle.
+
+The assertions are included in `sva_i2c_slave.sv`.
+
 
 ---
 
@@ -192,7 +242,6 @@ The verification process aims to:
 - Verify boundary conditions
 - Verify end-to-end master transactions using a behavioural slave model.
 - Verify end-to-end slave transactions using a behavioural master model.
-- Verify end-to-end master-slave integration
 
 ---
 

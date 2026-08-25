@@ -22,12 +22,11 @@ This specification defines the functional and non-functional requirements for Ve
 
 The initial implementation focuses on a standard single-master I²C protocol supporting configurable clock generation, 7-bit slave addressing, and single-byte read and write transactions.
 
-Version 1.0 implements:
+Version 1.0 currently implements:
 
 * Independent I²C Master and I²C Slave modules
-* Top-level integration module for verification
 * Single-master operation
-* Single-slave integration
+* Single-slave operation
 * Standard Mode (100 kHz)
 * 7-bit slave addressing
 * Single-byte read transactions
@@ -111,7 +110,8 @@ The I²C Top module shall:
 | `DATA_WIDTH` | Number of bits transferred during each I²C data phase. |
 | `CLOCK_FREQ_HZ` | System clock frequency in Hertz. |
 | `SCL_FREQ_HZ` | Target I²C serial clock frequency. |
-| `SLAVE_ADDRESS` | 7-bit slave address used for address comparison. |
+| `SLAVE_ADDR` | Fixed 7-bit address of the I²C Slave. |
+| `STRETCH_CYCLES` | Number of system-clock cycles for the Slave clock-stretch interval. |
 
 ---
 

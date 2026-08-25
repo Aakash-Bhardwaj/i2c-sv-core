@@ -162,7 +162,63 @@ The I²C Master datapath consists of:
 
 ## 6. I²C Slave
 
-*To be completed after implementation.*
+The I²C Slave follows a synchronous single-clock architecture and responds to transactions initiated by an external I²C Master.
+
+Key design decisions:
+
+- Single clock domain
+- Two-stage SDA/SCL synchronization
+- START and STOP detection from synchronized bus inputs
+- Open-drain SDA and SCL bus interface
+- Separate control and datapath
+- Dedicated 8-bit address shift register
+- Independent transmit and receive shift registers
+- Registered outputs
+- Parameterized transfer width
+- Six-state transaction FSM
+- Configurable slave address
+- Clock stretching support
+
+### Datapath Overview
+
+The I²C Slave datapath consists of:
+
+- SDA/SCL synchronizers
+- START/STOP and SCL edge detection
+- Transaction FSM
+- Address shift register
+- Transmit shift register
+- Receive shift register
+- Bit counter
+- Clock-stretch controller
+- Open-drain SDA/SCL bus interface
+- Registered outputs
+
+![DATAPATH](./images/I2C_SLAVE_DATAPATH.png)
+
+### Internal Registers
+
+| Register | Purpose |
+|----------|---------|
+| `rw_reg` | Latched read/write direction |
+| `tx_data_reg` | Latched transmit data |
+| `tx_shift_reg` | Transmit shift register |
+| `rx_shift_reg` | Receive shift register |
+| `rx_data_reg` | Received data register |
+| `address_shift_reg` | Received 8-bit address and R/W field |
+| `bit_count` | Bit counter |
+| `stretch_count` | Clock-stretch counter |
+| `sda_sync1` | First-stage SDA synchronizer |
+| `sda_in` | Synchronized SDA input |
+| `scl_sync1` | First-stage SCL synchronizer |
+| `scl_in` | Synchronized SCL input |
+| `stretch_request` | Clock-stretch request |
+| `sda_drive_low` | Open-drain SDA control |
+| `scl_drive_low` | Open-drain SCL control |
+| `busy_reg` | Busy status |
+| `done_reg` | Transaction complete pulse |
+| `error_reg` | Transaction error status |
+
 
 ---
 
