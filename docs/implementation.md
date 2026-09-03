@@ -210,25 +210,25 @@ The I²C Master uses a seven-state finite-state machine.
 |--------|------:|
 | Number of Ports | 12 |
 | Number of Port Bits | 32 |
-| Number of Wires | 296 |
-| Number of Wire Bits | 835 |
-| Public Wires | 42 |
-| Public Wire Bits | 118 |
+| Number of Wires | 335 |
+| Number of Wire Bits | 1018 |
+| Public Wires | 48 |
+| Public Wire Bits | 150 |
 | Memory Blocks | 0 |
 | Memory Bits | 0 |
 | Processes | 0 |
-| Total Cells | 642 |
+| Total Cells | 815 |
 
 #### Cell Breakdown
 
 | Cell Type | Count |
 |-----------|------:|
-| `$_AND_` | 137 |
-| `$_MUX_` | 220 |
+| `$_AND_` | 173 |
+| `$_MUX_` | 320 |
 | `$_NOT_` | 37 |
-| `$_OR_` | 178 |
+| `$_OR_` | 199 |
 | `$_SDFFE_PN0N_` | 3 |
-| `$_SDFFE_PN0P_` | 58 |
+| `$_SDFFE_PN0P_` | 74 |
 | `$_SDFF_PN0_` | 1 |
 | `$_XOR_` | 8 |
 
@@ -456,7 +456,6 @@ The I²C Slave uses a six-state finite-state machine.
 - [x] Assertions
 - [x] Generic Synthesis
 - [ ] Static Timing Analysis
-
 
 ---
 

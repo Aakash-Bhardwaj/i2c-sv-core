@@ -135,7 +135,7 @@ module tb_i2c_master;
                         slave_ack();
 
                         // Master write transaction
-                        if (received_byte[0]) begin
+                        if (!received_byte[0]) begin
                             slave_receive_byte(slave_rx_data);
                             if (slave_data_ack_enable) begin
                                 if (slave_stretch_enable)
@@ -163,6 +163,7 @@ module tb_i2c_master;
         end
     end
 
+    // ------------
     // Helper tasks
 
     // Record test results
@@ -379,7 +380,9 @@ module tb_i2c_master;
     endtask
 
     // Helper tasks end
+    // ----------------
 
+    // ----------
     // Test tasks
 
     // Test reset behaviour
@@ -397,7 +400,7 @@ module tb_i2c_master;
         $display("\n=== Write Transaction Test ===");
         apply_reset();
 
-        start_transaction(7'h42, 1'b1, 8'hA5);
+        start_transaction(7'h42, 1'b0, 8'hA5);
         wait_done();
 
         record_test("Write", !error);
@@ -415,7 +418,7 @@ module tb_i2c_master;
         apply_reset();
         slave_tx_data = 8'h3C;
 
-        start_transaction(7'h5A, 1'b0, 8'h00);
+        start_transaction(7'h5A, 1'b1, 8'h00);
         wait_done();
 
         record_test("Read rx_data == 8'h3C", rx_data == 8'h3C);
@@ -431,7 +434,7 @@ module tb_i2c_master;
         apply_reset();
         slave_addr_ack_enable = 1'b0;
 
-        start_transaction(7'h2B, 1'b1, 8'hFF);
+        start_transaction(7'h2B, 1'b0, 8'hFF);
 
         wait_done_or_error(); // Triggers as soon as NACK creates error
         record_test("error == 1", error == 1'b1);
@@ -450,7 +453,7 @@ module tb_i2c_master;
         slave_addr_ack_enable = 1'b1;
         slave_data_ack_enable = 1'b0;
 
-        start_transaction(7'h3C, 1'b1, 8'hAA);
+        start_transaction(7'h3C, 1'b0, 8'hAA);
         wait_done_or_error();
 
         record_test("Master detects NACK and asserts error", error == 1'b1);
@@ -467,17 +470,15 @@ module tb_i2c_master;
         slave_stretch_enable = 1'b1;
 
         // Run a write transaction
-        start_transaction(7'h4D, 1'b1, 8'h55);
+        start_transaction(7'h4D, 1'b0, 8'h55);
         wait_done();
-        record_test("Stretched Write Completed correctly",
-                    error == 1'b0 && slave_rx_data == 8'h55);
+        record_test("Stretched Write Completed correctly", error == 1'b0 && slave_rx_data == 8'h55);
 
         // Run a read transaction
         slave_tx_data = 8'hAA;
-        start_transaction(7'h4D, 1'b0, 8'h00);
+        start_transaction(7'h4D, 1'b1, 8'h00);
         wait_done();
-        record_test("Stretched Read Completed correctly",
-                    error == 1'b0 && rx_data == 8'hAA);
+        record_test("Stretched Read Completed correctly", error == 1'b0 && rx_data == 8'hAA);
 
         check_idle_state();
     end
@@ -489,23 +490,26 @@ module tb_i2c_master;
         $display("\n=== Repeated START Test ===");
         apply_reset();
 
-        // Let the first 2 passes succeed, then inject a NACK to break the Master's Repeated START sequence
-        force_nack_after_n = 3;
-
-        start_transaction(7'h12, 1'b1, 8'h34);
+        start_transaction(7'h12, 1'b0, 8'h34);
         wait(busy);
         @(posedge clk);
 
         // Issue Repeated START
+        slave_addr    = 7'h12;
+        rw            = 1'b1;  // Change direction to Read
+        tx_data       = 8'h00;
+        slave_tx_data = 8'h99;
+
         start = 1'b1;
         @(posedge clk);
         start = 1'b0;
 
-        // Wait until it finally ends out on the 3rd forced NACK
-        wait(error);
-        record_test("Back-to-back transactions successful without intervening STOP", 1'b1);
-
+        // Wait for transaction to end
         wait_done();
+        record_test("No error during back-to-back sequence", error == 1'b0);
+        record_test("Slave correctly received Write Data", slave_rx_data == 8'h34);
+        record_test("Master successfully read data via Sr", rx_data == 8'h99);
+
         check_idle_state();
     end
     endtask
@@ -540,12 +544,12 @@ module tb_i2c_master;
             if (!slave_addr_ack_enable) begin
                 if (error !== 1'b1) pass_flag = 1'b0;
             end
-            else if (rand_rw && !slave_data_ack_enable) begin // slave_data_ack only impacts writes
+            else if (!rand_rw && !slave_data_ack_enable) begin // slave_data_ack only impacts writes
                 if (error !== 1'b1) pass_flag = 1'b0;
             end
             else begin
                 if (error !== 1'b0) pass_flag = 1'b0;
-                if (!rand_rw && rx_data !== slave_tx_data) pass_flag = 1'b0;
+                if (rand_rw && rx_data !== slave_tx_data) pass_flag = 1'b0;
             end
 
             // Reseed guarantees ACKs for loop reset
@@ -557,27 +561,20 @@ module tb_i2c_master;
     endtask
 
     // Test tasks end
+    // --------------
 
     // Main test sequence
     initial begin
         test_reset();
-
         test_write();
-
         test_read();
-
         test_address_nack();
-
         test_data_nack();
-
         test_clock_stretching();
-
         test_repeated_start();
-
         test_random_transfers();
 
         print_summary();
-
         $finish;
     end
 

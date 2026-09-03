@@ -55,6 +55,11 @@ module i2c_master #(
     logic [6:0]               slave_addr_reg, next_slave_addr;
     logic                     rw_reg, next_rw;
 
+    // Shadow registers for Repeated START buffering
+    logic [6:0]               rstart_addr_reg, next_rstart_addr;
+    logic                     rstart_rw_reg, next_rstart_rw;
+    logic [DATA_WIDTH-1:0]    rstart_tx_data_reg, next_rstart_tx_data;
+
     // Datapath registers
     logic [DATA_WIDTH-1:0]    tx_shift_reg, next_tx_shift;
     logic [DATA_WIDTH-1:0]    tx_data_reg, next_tx_data;
@@ -157,10 +162,16 @@ module i2c_master #(
         next_error          = error_reg;
         next_sda_drive_low  = sda_drive_low;
         next_repeated_start = repeated_start_reg;
+        next_rstart_addr    = rstart_addr_reg;
+        next_rstart_rw      = rstart_rw_reg;
+        next_rstart_tx_data = rstart_tx_data_reg;
 
         // Checking for repeated start
         if (start && busy_reg) begin
             next_repeated_start = 1'b1;
+            next_rstart_addr    = slave_addr;
+            next_rstart_rw      = rw;
+            next_rstart_tx_data = tx_data;
         end
         case(state)
             IDLE: begin
@@ -262,14 +273,14 @@ module i2c_master #(
                 unique case (phase)
                     DRIVE: begin
                         // MSB as SDA if write
-                        if (rw_reg)
+                        if (!rw_reg)
                             next_sda_drive_low = ~tx_shift_reg[DATA_WIDTH-1];
                     end
                     RAISE: ; // IDLE
                     SAMPLE: begin
                         if (quarter_tick) begin
                             // SDA sampled and stored if read
-                            if (!rw_reg)
+                            if (rw_reg)
                                 next_rx_shift = {rx_shift_reg[DATA_WIDTH-2:0], sda_in};
                         end
                     end
@@ -278,7 +289,7 @@ module i2c_master #(
                             // Shift (for write) and advance after the clock pulse
                             if (!last_bit) begin
                                 next_bit_count = bit_count + 1'b1;
-                                if (rw_reg)
+                                if (!rw_reg)
                                     next_tx_shift = tx_shift_reg << 1;
                             end
                             else begin
@@ -299,7 +310,7 @@ module i2c_master #(
                     SAMPLE: begin
                         if (quarter_tick) begin
                             // Check for slave ACK
-                            if (rw_reg && sda_in) begin
+                            if (!rw_reg && sda_in) begin
                                 next_error = 1'b1;
                             end
                         end
@@ -307,7 +318,7 @@ module i2c_master #(
                     LOWER: begin
                         if (quarter_tick) begin
                             // Store data if read
-                            if (!rw_reg) begin
+                            if (rw_reg) begin
                                 next_rx_data = rx_shift_reg;
                             end
 
@@ -316,7 +327,13 @@ module i2c_master #(
                             end
                             // Repeated START check
                             else if (repeated_start_reg) begin
-                                next_state = START;
+                                next_state          = START;
+                                next_repeated_start = 1'b0;
+
+                                // Apply the buffered parameters
+                                next_slave_addr = rstart_addr_reg;
+                                next_rw         = rstart_rw_reg;
+                                next_tx_data    = rstart_tx_data_reg;
                             end
                             else begin
                                 next_state = STOP;
@@ -372,6 +389,9 @@ module i2c_master #(
             divider_reg        <= '0;
             clock_enable       <= 1'b0;
             repeated_start_reg <= 1'b0;
+            rstart_addr_reg    <= '0;
+            rstart_rw_reg      <= 1'b0;
+            rstart_tx_data_reg <= '0;
         end
         else begin
             state              <= next_state;
@@ -391,6 +411,9 @@ module i2c_master #(
             divider_reg        <= next_divider;
             clock_enable       <= next_clock_enable;
             repeated_start_reg <= next_repeated_start;
+            rstart_addr_reg    <= next_rstart_addr;
+            rstart_rw_reg      <= next_rstart_rw;
+            rstart_tx_data_reg <= next_rstart_tx_data;
         end
     end
 

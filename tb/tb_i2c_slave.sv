@@ -90,6 +90,7 @@ module tb_i2c_slave;
         $dumpvars(0, tb_i2c_slave);
     end
 
+    // ---------------------------
     // Master reference model tasks
 
     // Wait for SCL
@@ -180,7 +181,9 @@ module tb_i2c_slave;
     endtask
 
     // Master reference model tasks end
+    // --------------------------------
 
+    // ------------
     // Helper tasks
 
     // Record test results
@@ -243,7 +246,9 @@ module tb_i2c_slave;
     endtask
 
     // Helper tasks end
+    // ----------------
 
+    // ----------
     // Test tasks
 
     // Test reset behaviour
@@ -404,6 +409,7 @@ module tb_i2c_slave;
     endtask
 
     // Test tasks end
+    // --------------
 
     // Main test sequence
     initial begin

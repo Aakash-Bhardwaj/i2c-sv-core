@@ -149,6 +149,8 @@ module i2c_slave #(
                 else if (start_detected) begin
                     next_bit_count     = '0;
                     next_address_shift = '0;
+                    next_tx_data       = tx_data;
+                    next_tx_shift      = tx_data;
                 end
                 else if (scl_rising) begin
                     next_address_shift = {address_shift_reg[6:0], sda_in};
@@ -173,6 +175,8 @@ module i2c_slave #(
                     next_sda_drive_low = 1'b0;
                     next_bit_count     = '0;
                     next_address_shift = '0;
+                    next_tx_data       = tx_data;
+                    next_tx_shift      = tx_data;
                     next_state         = ADDRESS;
                 end
                 else begin
@@ -206,6 +210,8 @@ module i2c_slave #(
                     next_sda_drive_low = 1'b0;
                     next_bit_count     = '0;
                     next_address_shift = '0;
+                    next_tx_data       = tx_data;
+                    next_tx_shift      = tx_data;
                     next_state         = ADDRESS;
                 end
                 else begin
@@ -256,6 +262,8 @@ module i2c_slave #(
                     next_sda_drive_low = 1'b0;
                     next_bit_count     = '0;
                     next_address_shift = '0;
+                    next_tx_data       = tx_data;
+                    next_tx_shift      = tx_data;
                     next_state         = ADDRESS;
                 end
                 else begin
