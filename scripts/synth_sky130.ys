@@ -1,0 +1,64 @@
+# Yosys Technology Mapped Synthesis Script for I2C Top
+# Technology : Sky130 HDLL
+
+# Read Sky130 library
+read_liberty -lib /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hdll/lib/sky130_fd_sc_hdll__tt_025C_1v80.lib
+
+# Read RTL
+read_verilog -sv rtl/i2c_master.sv
+read_verilog -sv rtl/i2c_slave.sv
+read_verilog -sv rtl/i2c_top.sv
+
+# Hierarchy
+hierarchy -top i2c_top
+
+# RTL process conversion
+proc
+
+# Flatten hierarchy while preserving tri-state/inout structure
+flatten
+
+# Convert mux-with-Z representations to explicit tri-state buffers.
+# Do NOT use tribuf -logic or deminout.
+tribuf -merge
+
+# Generic optimization
+opt_expr
+opt_clean
+check
+opt
+wreduce
+peepopt
+opt_clean
+
+# FSM optimization
+fsm
+opt
+
+# Memory conversion
+memory_dff
+memory_map
+opt_clean
+opt
+
+# Generic technology mapping
+techmap
+opt
+
+# Map generic tri-state buffers to Sky130 ebufn cells
+techmap -map scripts/sky130_tbuf_map.v
+opt
+
+# Map flip-flops to Sky130 cells
+dfflibmap -liberty /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hdll/lib/sky130_fd_sc_hdll__tt_025C_1v80.lib
+
+# Combinational technology mapping
+abc -liberty /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hdll/lib/sky130_fd_sc_hdll__tt_025C_1v80.lib -D 19000
+
+clean
+
+# Reports
+stat -liberty /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hdll/lib/sky130_fd_sc_hdll__tt_025C_1v80.lib
+
+# Output
+write_verilog -noattr reports/i2c_top_sky130_synth.v
