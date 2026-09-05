@@ -154,7 +154,7 @@ Final Documentation Review
 - [x] Verification
 - [x] Generic synthesis
 - [x] Technology-mapped synthesis
-- [ ] Static timing analysis
+- [x] Static timing analysis
 - [ ] Finalize Documentation
 
 ---
