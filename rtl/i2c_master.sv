@@ -26,14 +26,15 @@ module i2c_master #(
     localparam int BIT_CNT_WIDTH = (DATA_WIDTH <= 1) ? 1 : $clog2(DATA_WIDTH);
 
     // State encoding
-    typedef enum logic [2:0] {
-        IDLE,
-        START,
-        ADDRESS,
-        ADDRESS_ACK,
-        DATA_TRANSFER,
-        DATA_TRANSFER_ACK,
-        STOP
+    // Using one hot encoding to fix timing violations
+    typedef enum logic [6:0] {
+    IDLE             = 7'b0000001,
+    START            = 7'b0000010,
+    ADDRESS          = 7'b0000100,
+    ADDRESS_ACK      = 7'b0001000,
+    DATA_TRANSFER    = 7'b0010000,
+    DATA_TRANSFER_ACK= 7'b0100000,
+    STOP             = 7'b1000000
     } state_t;
     state_t state, next_state;
 

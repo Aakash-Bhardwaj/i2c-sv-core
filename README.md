@@ -36,18 +36,18 @@ Each design decision is documented, verified, synthesized, and analyzed before i
 
 - [x] Independent I²C Master module
 - [x] Independent I²C Slave module
-- [ ] Top-level Master–Slave integration
+- [x] Top-level Master–Slave integration
 - [x] Standard Mode (100 kHz)
 - [x] 7-bit slave addressing
-- [ ] Parameterized transfer width
+- [x] Parameterized transfer width
 - [x] Parameterized I²C clock generation
-- [ ] Single-byte write transactions
-- [ ] Single-byte read transactions
-- [ ] START condition generation and detection
-- [ ] Repeated START generation and detection
-- [ ] STOP condition generation and detection
-- [ ] ACK/NACK generation and detection
-- [ ] Open-drain SDA and SCL interfaces
+- [x] Single-byte write transactions
+- [x] Single-byte read transactions
+- [x] START condition generation and detection
+- [x] Repeated START generation and detection
+- [x] STOP condition generation and detection
+- [x] ACK/NACK generation and detection
+- [x] Open-drain SDA and SCL interfaces
 
 ## Future Roadmap
 
@@ -150,9 +150,9 @@ Final Documentation Review
 - [x] I²C Slave RTL
 - [x] I²C Slave Verification
 - [x] I²C Slave Synthesis
-- [ ] Top-level integration
-- [ ] Verification
-- [ ] Generic synthesis
+- [x] Top-level integration
+- [x] Verification
+- [x] Generic synthesis
 - [ ] Technology-mapped synthesis
 - [ ] Static timing analysis
 - [ ] Finalize Documentation
